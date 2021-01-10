@@ -36,21 +36,12 @@ from django.conf import settings
 
 
 def get_subreddits():
-    CLIENT_ID = settings.REDDIT_CLIENT_ID
-    SECRET_KEY = settings.REDDIT_SECRET_KEY
-    USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_1_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.101 Safari/537.36"
-    params = {
-        "grant_type": "password",
-        "username": settings.REDDIT_USERNAME,
-        "password": settings.REDDIT_PASSWORD,
-    }
-
     reddit = praw.Reddit(
-        client_id=CLIENT_ID,
-        client_secret=SECRET_KEY,
-        user_agent=USER_AGENT,
-        username="theognis1002",
-        password="Dagger10!",
+        client_id=settings.REDDIT_CLIENT_ID,
+        client_secret=settings.REDDIT_SECRET_KEY,
+        user_agent=settings.USER_AGENT,
+        username=settings.REDDIT_USERNAME,
+        password=settings.REDDIT_PASSWORD,
     )
 
     for subreddit in reddit.subreddits.default():

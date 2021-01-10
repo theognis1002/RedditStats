@@ -11,6 +11,9 @@ class Subreddit(models.Model):
     last_modified = models.DateTimeField(auto_now=True)
     date_added = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f"{self.name} - {self.url}"
+
     class Meta:
         ordering = ["-date_added"]
 
@@ -20,3 +23,10 @@ class SubscriberHistory(models.Model):
     previous_count = models.IntegerField(blank=True, null=True)
     current_count = models.IntegerField()
     last_modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.subreddit} - {self.current_count}"
+
+    class Meta:
+        verbose_name = "Subscriber History"
+        verbose_name_plural = "Subscriber History"

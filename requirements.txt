@@ -13,6 +13,7 @@ click==7.1.2
 Django==3.1.5
 django-celery==3.3.1
 django-crispy-forms==1.10.0
+django-redis==4.12.1
 idna==2.10
 kombu==3.0.37
 lxml==4.6.2

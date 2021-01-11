@@ -17,7 +17,7 @@ SECRET_KEY = config("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -70,21 +70,14 @@ WSGI_APPLICATION = "reddit_stats.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": "postgres",
+        "USER": "postgres",
+        "PASSWORD": "postgres",
+        "HOST": config("POSTGRESQL_HOST", default="db"),
+        "PORT": config("POSTGRESQL_PORT", cast=int, default=5432),
     }
 }
-
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql_psycopg2",
-#         "NAME": config("POSTGRESQL_NAME"),
-#         "USER": config("POSTGRESQL_USER"),
-#         "PASSWORD": config("POSTGRESQL_PASSWORD"),
-#         "HOST": config("POSTGRESQL_HOST"),
-#         "PORT": config("POSTGRESQL_PORT", cast=int),
-#     }
-# }
 
 
 # Password validation

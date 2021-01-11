@@ -20,12 +20,11 @@ class Subreddit(models.Model):
 
 class SubscriberHistory(models.Model):
     subreddit = models.ForeignKey(Subreddit, on_delete=models.CASCADE)
-    previous_count = models.IntegerField(blank=True, null=True)
-    current_count = models.IntegerField()
-    last_modified = models.DateTimeField(auto_now=True)
+    subscriber_count = models.IntegerField()
+    date_recorded = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.subreddit} - {self.current_count}"
+        return f"{self.subreddit} - {self.subscriber_count}"
 
     class Meta:
         verbose_name = "Subscriber History"

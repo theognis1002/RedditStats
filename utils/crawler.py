@@ -12,6 +12,7 @@ import requests
 from bs4 import BeautifulSoup
 import pytz
 from django.conf import settings
+from django.db.models import F
 
 
 # popular
@@ -56,17 +57,19 @@ def get_subreddits():
             creation_date=creation_date,
         )
 
-        sub_history, previous_record = SubscriberHistory.objects.get_or_create(
-            subreddit=sub, current_count=subreddit.subscribers
-        )
-        if not previous_record:
-            sub_history.previous_count = sub_history.current_count
-            sub_history.save()
+        last_record = SubscriberHistory.objects.filter(subreddit=sub).last()
+        time_since_last_check = (
+            timezone.now() - last_record.date_recorded
+        ).seconds // 3600
+
+        if time_since_last_check > 20:
+            print(f"{subreddit.display_name} subscriber count updated")
+            sub_metadata = SubscriberHistory.objects.create(
+                subreddit=sub, subscriber_count=subreddit.subscribers
+            )
 
         if created:
             print(f"{subreddit.display_name} added!")
-        else:
-            print(f"Duplicate: {subreddit.display_name}")
 
 
 subreddits = []
@@ -90,11 +93,63 @@ subreddits = []
 #             crawl_reddistlist(next_page_url)
 
 
+def update_subscriber_count():
+    subreddits = (
+        Subreddit.objects.annotate(
+            date=F("subscriberhistory__date_recorded"),
+            subscribers=F("subscriberhistory__subscriber_count"),
+        )
+        .order_by("id", "-date")
+        .distinct()
+    )
+    #        filter(
+    # subscriberhistory__date_recorded__lt=timezone.now() - timedelta(hours=3)
+
+    print(subreddits)
+    for sub in subreddits:
+        print(sub.name, sub.date, sub.subscribers)
+    exit()
+    reddit = praw.Reddit(
+        client_id=settings.REDDIT_CLIENT_ID,
+        client_secret=settings.REDDIT_SECRET_KEY,
+        user_agent=settings.USER_AGENT,
+        username=settings.REDDIT_USERNAME,
+        password=settings.REDDIT_PASSWORD,
+    )
+
+    for subreddit in subreddits:
+        new_subscriber_count = reddit.subreddits.search_by_name(
+            subreddit.name, exact=True
+        )[0].subscribers
+
+        last_record = SubscriberHistory.objects.filter(subreddit=subreddit).last()
+        time_since_last_check = (
+            timezone.now() - last_record.date_recorded
+        ).seconds // 3600
+        print(time_since_last_check)
+        if time_since_last_check > 20:
+            print(f"{subreddit.display_name} subscriber count updated")
+            sub_metadata = SubscriberHistory.objects.create(
+                subreddit=subreddit, subscriber_count=subreddit.subscribers
+            )
+
+        time.sleep(1)
+
+
+def cleanup():
+    past_records = SubscriberHistory.objects.filter(
+        date_recorded__lt=timezone.now() - timedelta(days=7)
+    )
+    past_records.delete()
+
+
 def main():
     # crawl_reddistlist("http://redditlist.com/all")
     # print(list(set(subreddits)))
     # print(len(subreddits))
-    get_subreddits()
+    # get_subreddits()
+    update_subscriber_count()
+    # cleanup()
 
 
 if __name__ == "__main__":
@@ -104,5 +159,7 @@ if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "reddit_stats.settings")
     django.setup()
     from content.models import Subreddit, SubscriberHistory
+    from django.utils import timezone
+    from datetime import timedelta
 
     main()
